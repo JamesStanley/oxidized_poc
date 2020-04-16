@@ -100,6 +100,8 @@ param
         Write-Host "Function Called : Create-AuthHeader" -ForegroundColor Green
         
         Write-Host "accessToken is " $accessToken
+        Write-Host "accessToken.accessToken is " $accessToken.accessToken
+        Write-Host "accessToken gm is " $accessToken | gm
 
         if($accessToken.AccessToken){
 
