@@ -235,7 +235,7 @@ $authority = "https://login.microsoftonline.com/$Tenant"
     $authResult = $authContext.AcquireTokenAsync($resourceAppIdURI,$clientId,$redirectUri,$platformParameters,$userId).Result
 
         # If the accesstoken is valid then create the authentication header
-
+    Write-Host "Function: Get-AuthToken" -ForegroundColor Red
         if($authResult.AccessToken){
 
         # Creating header for Authorization token
@@ -429,6 +429,11 @@ write-host
 Login-AzureCLI -servicePrincipalID $servicePrincipalID -servicePrincipalPassword $servicePrincipalPassword -tenantID $tenantID
 
 $authToken = az account get-access-token --resource-type ms-graph
+
+if(!$saveDir){
+  $saveDir = (Get-Location).Path
+}
+
 
 write-output "authToken is:" $authToken
 write-host
