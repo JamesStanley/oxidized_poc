@@ -99,6 +99,8 @@ param
 
         Write-Host "Function Called : Create-AuthHeader" -ForegroundColor Green
         
+        Write-Host "accessToken is " $accessToken
+
         if($accessToken.AccessToken){
 
         # Creating header for Authorization token
