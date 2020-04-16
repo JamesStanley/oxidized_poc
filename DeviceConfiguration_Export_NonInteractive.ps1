@@ -428,114 +428,116 @@ write-host
 
 Login-AzureCLI -servicePrincipalID $servicePrincipalID -servicePrincipalPassword $servicePrincipalPassword -tenantID $tenantID
 
-# write-output "authToken is:" $authToken
-# write-host
-# write-host
-# write-output "saveDir is:" $saveDir
-# write-host
-# write-host
-# $authHeader = Create-AuthHeader -accessToken $authToken
-# write-output "authHeader is:" $authHeader
+$authToken = az account get-access-token --resource-type ms-graph
 
-# # Checking if authToken exists before running authentication
-# #if($global:authHeader){
-# if($authHeader){
+write-output "authToken is:" $authToken
+write-host
+write-host
+write-output "saveDir is:" $saveDir
+write-host
+write-host
+$authHeader = Create-AuthHeader -accessToken $authToken
+write-output "authHeader is:" $authHeader
 
-#     # Setting DateTime to Universal time to work in all timezones
-#     $DateTime = (Get-Date).ToUniversalTime()
+# Checking if authToken exists before running authentication
+#if($global:authHeader){
+if($authHeader){
 
-#     # If the authToken exists checking when it expires
-#     write-output "1"
-#     $TokenExpires = ([datetime]$authToken.ExpiresOn - $DateTime).Minutes
-# write-output "2"
-#         if($TokenExpires -le 0){
-# write-output "3"
-#         write-host "Authentication Token expired" $TokenExpires "minutes ago" -ForegroundColor Yellow
-#         write-host
+    # Setting DateTime to Universal time to work in all timezones
+    $DateTime = (Get-Date).ToUniversalTime()
 
-#             # Defining User Principal Name if not present
+    # If the authToken exists checking when it expires
+    write-output "1"
+    $TokenExpires = ([datetime]$authToken.ExpiresOn - $DateTime).Minutes
+write-output "2"
+        if($TokenExpires -le 0){
+write-output "3"
+        write-host "Authentication Token expired" $TokenExpires "minutes ago" -ForegroundColor Yellow
+        write-host
 
-#             if($User -eq $null -or $User -eq ""){
-# write-output "4"
-#             $User = Read-Host -Prompt "Please specify your user principal name for Azure Authentication"
-#             Write-Host
+            # Defining User Principal Name if not present
 
-#             }
+            if($User -eq $null -or $User -eq ""){
+write-output "4"
+            $User = Read-Host -Prompt "Please specify your user principal name for Azure Authentication"
+            Write-Host
 
-#         $global:authToken = Get-AuthToken -User $User
+            }
 
-#         }
-# }
+        $global:authToken = Get-AuthToken -User $User
 
-# # Authentication doesn't exist, calling Get-AuthToken function
+        }
+}
 
-# else {
-# write-output "5"
-#     if($User -eq $null -or $User -eq ""){
+# Authentication doesn't exist, calling Get-AuthToken function
 
-#     $User = Read-Host -Prompt "Please specify your user principal name for Azure Authentication"
-#     Write-Host
+else {
+write-output "5"
+    if($User -eq $null -or $User -eq ""){
 
-#     }
+    $User = Read-Host -Prompt "Please specify your user principal name for Azure Authentication"
+    Write-Host
 
-# # Getting the authorization token
-# write-output "6"
-# $global:authToken = Get-AuthToken -User $User
+    }
 
-# }
+# Getting the authorization token
+write-output "6"
+$global:authToken = Get-AuthToken -User $User
 
-# #endregion
+}
 
-# ####################################################
+#endregion
 
-# if($saveDir){
-#   write-output "7"
-#   $ExportPath = $saveDir
-# }
-# else {
-#   write-output "8"
-#   $ExportPath = Read-Host -Prompt "Please specify a path to export the policy data to e.g. C:\IntuneOutput"
+####################################################
 
-#     # If the directory path doesn't exist prompt user to create the directory
-#     $ExportPath = $ExportPath.replace('"','')
+if($saveDir){
+  write-output "7"
+  $ExportPath = $saveDir
+}
+else {
+  write-output "8"
+  $ExportPath = Read-Host -Prompt "Please specify a path to export the policy data to e.g. C:\IntuneOutput"
 
-#     if(!(Test-Path "$ExportPath")){
+    # If the directory path doesn't exist prompt user to create the directory
+    $ExportPath = $ExportPath.replace('"','')
 
-#     Write-Host
-#     Write-Host "Path '$ExportPath' doesn't exist, do you want to create this directory? Y or N?" -ForegroundColor Yellow
+    if(!(Test-Path "$ExportPath")){
 
-#     $Confirm = read-host
+    Write-Host
+    Write-Host "Path '$ExportPath' doesn't exist, do you want to create this directory? Y or N?" -ForegroundColor Yellow
 
-#         if($Confirm -eq "y" -or $Confirm -eq "Y"){
+    $Confirm = read-host
 
-#         new-item -ItemType Directory -Path "$ExportPath" | Out-Null
-#         Write-Host
+        if($Confirm -eq "y" -or $Confirm -eq "Y"){
 
-#         }
+        new-item -ItemType Directory -Path "$ExportPath" | Out-Null
+        Write-Host
 
-#         else {
+        }
 
-#         Write-Host "Creation of directory path was cancelled..." -ForegroundColor Red
-#         Write-Host
-#         break
+        else {
 
-#         }
+        Write-Host "Creation of directory path was cancelled..." -ForegroundColor Red
+        Write-Host
+        break
 
-#     }
-# }
+        }
 
-# ####################################################
-# write-output "9"
-# Write-Host
+    }
+}
 
-# $DCPs = Get-DeviceConfigurationPolicy -authHeader $authHeader
-# write-output "10"
-# foreach($DCP in $DCPs){
-# write-output "11"
-# write-host "Device Configuration Policy:"$DCP.displayName -f Yellow
-# Export-JSONData -JSON $DCP -ExportPath "$ExportPath"
-# Write-Host
+####################################################
+write-output "9"
+Write-Host
 
-# }
+$DCPs = Get-DeviceConfigurationPolicy -authHeader $authHeader
+write-output "10"
+foreach($DCP in $DCPs){
+write-output "11"
+write-host "Device Configuration Policy:"$DCP.displayName -f Yellow
+Export-JSONData -JSON $DCP -ExportPath "$ExportPath"
+Write-Host
 
-# Write-Host
+}
+
+Write-Host
