@@ -436,6 +436,7 @@ Login-AzureCLI -servicePrincipalID $servicePrincipalID -servicePrincipalPassword
 
 $authToken = az account get-access-token --resource-type ms-graph
 
+$authToken = $authToken | ConvertFrom-Json
 if(!$saveDir){
   $saveDir = (Get-Location).Path
 }
