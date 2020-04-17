@@ -409,14 +409,18 @@ write-output "START"
 
 write-host
 
+if ($(az account show)){
+Write-Host "Logged In" -ForegroundColor Green
+} else {
+Write-Host "Call Login Function" -ForegroundColor Red
 Login-AzureCLI -servicePrincipalID $servicePrincipalID -servicePrincipalPassword $servicePrincipalPassword -tenantID $tenantID
+}
 
 $authToken = az account get-access-token --resource-type ms-graph | ConvertFrom-Json
 
 if(!$saveDir){
   $saveDir = (Get-Location).Path
 }
-
 
 write-output "authToken is:" $authToken
 write-host
