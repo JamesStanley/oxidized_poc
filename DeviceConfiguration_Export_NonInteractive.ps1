@@ -12,12 +12,11 @@ param
     [Parameter(Mandatory=$false)]
     $servicePrincipalPassword,
 
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory=$false)]
     $tenantID
 
 )
 
-Write-Output "saveDir is: " $saveDir
 <#
 
 .COPYRIGHT
@@ -29,18 +28,6 @@ See LICENSE in the project root for license information.
 ####################################################
 
 function Login-AzureCLI {
-
-<#
-.SYNOPSIS
-This function is used to create authheader used to authenticate with the Graph API REST interface
-.DESCRIPTION
-This function is used to create authheader used to authenticate with the Graph API REST interface
-.EXAMPLE
-Create-AuthHeader
-Create Auth Header for use withh the Graph API interface
-.NOTES
-NAME: Create-AuthHeader
-#>
 
 [cmdletbinding()]
 
@@ -305,13 +292,8 @@ $DCP_resource = "deviceManagement/deviceConfigurations"
     
     Write-Host "Function called: Get-DeviceConfigurationPolicy"
     $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)"
-    write-host "URL is:" $uri
-    write-host "authHeader is:" $($authHeader)
-    write-host "authHeader ExpiresOn is:" $($authHeader.ExpiresOn)
-    write-host "authHeader Authorization is:" $($authHeader.Authorization)
     # (Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).Value
     (Invoke-RestMethod -Uri $uri -Headers $authHeader -Method Get).Value
-    write-host "invoke"
     }
     
     catch {
@@ -387,6 +369,7 @@ $ExportPath
 
         $Properties = ($JSON_Convert | Get-Member | ? { $_.MemberType -eq "NoteProperty" }).Name
 
+            # Need to decide on the file name format, may also only need JSON. 
             # $FileName_CSV = "$DisplayName" + "_" + $(get-date -f dd-MM-yyyy-H-mm-ss) + ".csv"
             # $FileName_JSON = "$DisplayName" + "_" + $(get-date -f dd-MM-yyyy-H-mm-ss) + ".json"
             $FileName_CSV = "$DisplayName" + ".csv"
@@ -423,8 +406,6 @@ $ExportPath
 ####################################################
 
 write-output "START"
-
-#region Authentication
 
 write-host
 
