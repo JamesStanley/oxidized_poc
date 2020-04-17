@@ -411,7 +411,7 @@ if ($(az account show)){
 Write-Host "Already Logged In" -ForegroundColor Green
 } else {
 Write-Host "Not logged in - Calling Login Function" -ForegroundColor Red
-  if(!$servicePrincipalID or !$servicePrincipalPassword or !$tenantID) {
+  if(!$servicePrincipalID -or !$servicePrincipalPassword -or !$tenantID) {
     write-host "Variables empty, cannot login. Please supply `$servicePrincipalID, `$servicePrincipalPassword and `$tenantID when calling the script!" -f Red
     write-host
     break
