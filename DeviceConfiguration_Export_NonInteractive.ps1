@@ -405,15 +405,19 @@ $ExportPath
 
 ####################################################
 
-write-output "START"
-
 write-host
 
 if ($(az account show)){
-Write-Host "Logged In" -ForegroundColor Green
+Write-Host "Already Logged In" -ForegroundColor Green
 } else {
-Write-Host "Call Login Function" -ForegroundColor Red
-Login-AzureCLI -servicePrincipalID $servicePrincipalID -servicePrincipalPassword $servicePrincipalPassword -tenantID $tenantID
+Write-Host "Not logged in - Calling Login Function" -ForegroundColor Red
+  if(!$servicePrincipalID or !$servicePrincipalPassword or !$tenantID) {
+    write-host "Variables empty, cannot login. Please supply `$servicePrincipalID, `$servicePrincipalPassword and `$tenantID when calling the script!" -f Red
+    write-host
+    break
+    } else {
+      Login-AzureCLI -servicePrincipalID $servicePrincipalID -servicePrincipalPassword $servicePrincipalPassword -tenantID $tenantID
+  }
 }
 
 $authToken = az account get-access-token --resource-type ms-graph | ConvertFrom-Json
