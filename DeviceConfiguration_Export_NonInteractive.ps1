@@ -384,7 +384,7 @@ Write-Host
 $DCPs = Get-DeviceConfigurationPolicy -authHeader $authHeader
 foreach($DCP in $DCPs){
 write-debug "Device Configuration Policy: $($DCP.displayName)"
-write-host $DCP
+write-host $($DCP | ConvertTo-Json)
 
 }
 
