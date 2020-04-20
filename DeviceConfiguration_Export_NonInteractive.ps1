@@ -383,10 +383,13 @@ Write-Host
 
 $DCPs = Get-DeviceConfigurationPolicy -authHeader $authHeader
 foreach($DCP in $DCPs){
-write-host "Device Configuration Policy:"$DCP.displayName -f Yellow
+write-debug "Device Configuration Policy: $($DCP.displayName)"
 write-host $DCP
-Write-Host
 
 }
 
 Write-Host
+
+
+
+
