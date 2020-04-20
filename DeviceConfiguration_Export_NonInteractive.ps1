@@ -1,9 +1,6 @@
 param
 (
     [Parameter(Mandatory=$false)]
-    $saveDir,
-
-    [Parameter(Mandatory=$false)]
     $authToken,
 
     [Parameter(Mandatory=$false)]
@@ -84,7 +81,7 @@ param
 )
     try {
 
-        Write-Host "Function Called : Create-AuthHeader" -ForegroundColor Green
+        Write-Debug "Function Called : Create-AuthHeader"
         
         if($accessToken.AccessToken){
 
@@ -149,7 +146,7 @@ $userUpn = New-Object "System.Net.Mail.MailAddress" -ArgumentList $User
 
 $tenant = $userUpn.Host
 
-Write-Host "Checking for AzureAD module..."
+Write-Deb "Checking for AzureAD module..."
 
     $AadModule = Get-Module -Name "AzureAD" -ListAvailable
 
@@ -224,7 +221,7 @@ $authority = "https://login.microsoftonline.com/$Tenant"
     $authResult = $authContext.AcquireTokenAsync($resourceAppIdURI,$clientId,$redirectUri,$platformParameters,$userId).Result
 
         # If the accesstoken is valid then create the authentication header
-    Write-Host "Function: Get-AuthToken" -ForegroundColor Red
+    Write-Debug "Function: Get-AuthToken"
         if($authResult.AccessToken){
 
         # Creating header for Authorization token
@@ -290,7 +287,7 @@ $DCP_resource = "deviceManagement/deviceConfigurations"
     
     try {
     
-    Write-Host "Function called: Get-DeviceConfigurationPolicy"
+    Write-Debug "Function called: Get-DeviceConfigurationPolicy"
     $uri = "https://graph.microsoft.com/$graphApiVersion/$($DCP_resource)"
     # (Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).Value
     (Invoke-RestMethod -Uri $uri -Headers $authHeader -Method Get).Value
@@ -313,104 +310,15 @@ $DCP_resource = "deviceManagement/deviceConfigurations"
 
 }
 
-####################################################
-
-Function Export-JSONData(){
-
-<#
-.SYNOPSIS
-This function is used to export JSON data returned from Graph
-.DESCRIPTION
-This function is used to export JSON data returned from Graph
-.EXAMPLE
-Export-JSONData -JSON $JSON
-Export the JSON inputted on the function
-.NOTES
-NAME: Export-JSONData
-#>
-
-param (
-
-$JSON,
-$ExportPath
-
-)
-
-    try {
-
-        if($JSON -eq "" -or $JSON -eq $null){
-
-        write-host "No JSON specified, please specify valid JSON..." -f Red
-
-        }
-
-        elseif(!$ExportPath){
-
-        write-host "No export path parameter set, please provide a path to export the file" -f Red
-
-        }
-
-        elseif(!(Test-Path $ExportPath)){
-
-        write-host "$ExportPath doesn't exist, can't export JSON Data" -f Red
-
-        }
-
-        else {
-
-        $JSON1 = ConvertTo-Json $JSON -Depth 5
-
-        $JSON_Convert = $JSON1 | ConvertFrom-Json
-
-        $displayName = $JSON_Convert.displayName
-
-        # Updating display name to follow file naming conventions - https://msdn.microsoft.com/en-us/library/windows/desktop/aa365247%28v=vs.85%29.aspx
-        $DisplayName = $DisplayName -replace '\<|\>|:|"|/|\\|\||\?|\*', "_"
-
-        $Properties = ($JSON_Convert | Get-Member | ? { $_.MemberType -eq "NoteProperty" }).Name
-
-            # Need to decide on the file name format, may also only need JSON. 
-            # $FileName_CSV = "$DisplayName" + "_" + $(get-date -f dd-MM-yyyy-H-mm-ss) + ".csv"
-            # $FileName_JSON = "$DisplayName" + "_" + $(get-date -f dd-MM-yyyy-H-mm-ss) + ".json"
-            $FileName_CSV = "$DisplayName" + ".csv"
-            $FileName_JSON = "$DisplayName" + ".json"
-
-            $Object = New-Object System.Object
-
-                foreach($Property in $Properties){
-
-                $Object | Add-Member -MemberType NoteProperty -Name $Property -Value $JSON_Convert.$Property
-
-                }
-
-            write-host "Export Path:" "$ExportPath"
-
-            # $Object | Export-Csv -LiteralPath "$ExportPath\$FileName_CSV" -Delimiter "," -NoTypeInformation -Append
-            $Object | Export-Csv -LiteralPath "$ExportPath\$FileName_CSV" -Delimiter "," -NoTypeInformation
-            $JSON1 | Set-Content -LiteralPath "$ExportPath\$FileName_JSON"
-            write-host "CSV created in $ExportPath\$FileName_CSV..." -f cyan
-            write-host "JSON created in $ExportPath\$FileName_JSON..." -f cyan
-            
-        }
-
-    }
-
-    catch {
-
-    $_.Exception
-
-    }
-
-}
 
 ####################################################
 
 write-host
 
 if ($(az account show)){
-Write-Host "Already Logged In" -ForegroundColor Green
+Write-Debug "Already Logged In"
 } else {
-Write-Host "Not logged in - Calling Login Function" -ForegroundColor Red
+Write-Debug "Not logged in - Calling Login Function"
   if(!$servicePrincipalID -or !$servicePrincipalPassword -or !$tenantID) {
     write-host "Variables empty, cannot login. Please supply `$servicePrincipalID, `$servicePrincipalPassword and `$tenantID when calling the script!" -f Red
     write-host
@@ -422,18 +330,9 @@ Write-Host "Not logged in - Calling Login Function" -ForegroundColor Red
 
 $authToken = az account get-access-token --resource-type ms-graph | ConvertFrom-Json
 
-if(!$saveDir){
-  $saveDir = (Get-Location).Path
-}
 
-write-output "authToken is:" $authToken
-write-host
-write-host
-write-output "saveDir is:" $saveDir
-write-host
-write-host
 $authHeader = Create-AuthHeader -accessToken $authToken
-write-output "authHeader is:" $authHeader
+
 
 # Checking if authToken exists before running authentication
 #if($global:authHeader){
@@ -479,51 +378,13 @@ $global:authToken = Get-AuthToken -User $User
 
 }
 
-#endregion
-
-####################################################
-
-if($saveDir){
-  $ExportPath = $saveDir
-}
-else {
-  $ExportPath = Read-Host -Prompt "Please specify a path to export the policy data to e.g. C:\IntuneOutput"
-
-    # If the directory path doesn't exist prompt user to create the directory
-    $ExportPath = $ExportPath.replace('"','')
-
-    if(!(Test-Path "$ExportPath")){
-
-    Write-Host
-    Write-Host "Path '$ExportPath' doesn't exist, do you want to create this directory? Y or N?" -ForegroundColor Yellow
-
-    $Confirm = read-host
-
-        if($Confirm -eq "y" -or $Confirm -eq "Y"){
-
-        new-item -ItemType Directory -Path "$ExportPath" | Out-Null
-        Write-Host
-
-        }
-
-        else {
-
-        Write-Host "Creation of directory path was cancelled..." -ForegroundColor Red
-        Write-Host
-        break
-
-        }
-
-    }
-}
-
-####################################################
+###################################################
 Write-Host
 
 $DCPs = Get-DeviceConfigurationPolicy -authHeader $authHeader
 foreach($DCP in $DCPs){
 write-host "Device Configuration Policy:"$DCP.displayName -f Yellow
-Export-JSONData -JSON $DCP -ExportPath "$ExportPath"
+write-host $DCP
 Write-Host
 
 }
